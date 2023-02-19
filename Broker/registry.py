@@ -1,7 +1,7 @@
 import logging
 from threading import Timer
 
-from Broker.rwlock import ReadWriteLock, WriteRWLock, ReadRWLock
+from rwlock import ReadWriteLock, WriteRWLock, ReadRWLock
 
 N_MINUTES = 5
 
@@ -21,7 +21,11 @@ class Registry:
 
         self._logger = logger
 
-        RepeatTimer(N_MINUTES * 60, self.remove_old).start()
+        self._timer = RepeatTimer(N_MINUTES * 60, self.remove_old)
+        self._timer.start()
+
+    def stop_timer(self):
+        self._timer.cancel()
 
     def remove_old(self):
         with self._writeLock:
@@ -69,6 +73,8 @@ class Registry:
         return self._to_string
 
 
+# Perpetual timer with set delay
+# SOURCE: https://stackoverflow.com/a/48741004
 class RepeatTimer(Timer):
     def run(self):
         while not self.finished.wait(self.interval):

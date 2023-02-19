@@ -1,9 +1,8 @@
 import logging
 import os
 import socketserver
-from pathlib import Path
 
-from Broker.registry import Registry
+from registry import Registry
 
 # CONSTANTS
 
@@ -16,7 +15,7 @@ logging.basicConfig(filename=f'{os.getpid()}.log',
                     format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S%z',
                     level=logging.DEBUG)
-logger = logging.getLogger(Path(__file__).stem)
+logger = logging.getLogger('Broker')
 
 # INIZIALIZING VARIABLES
 
@@ -38,5 +37,11 @@ class BrokerRequestHandler(socketserver.DatagramRequestHandler):
         self.wfile.write(bytes(result, "utf-8"))
 
 
-with socketserver.UDPServer((localAddress, localPort), BrokerRequestHandler) as server:
-    server.serve_forever()
+try:
+    with socketserver.UDPServer((localAddress, localPort), BrokerRequestHandler) as server:
+        server.serve_forever()
+except KeyboardInterrupt:
+    server.shutdown()
+    registry.stop_timer()
+    print("Terminated")
+    logger.log(level=logging.INFO, msg="Broker terminated")
