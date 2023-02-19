@@ -1,9 +1,12 @@
 import logging
+from threading import Timer
+
 from Broker.rwlock import ReadWriteLock, WriteRWLock, ReadRWLock
+
+N_MINUTES = 5
 
 
 class Registry:
-    # TODO: Add timer for removing stale entries
 
     def __init__(self, logger):
         self._registry = {}  # Map<String, (String, Bool)>
@@ -18,9 +21,11 @@ class Registry:
 
         self._logger = logger
 
+        RepeatTimer(N_MINUTES * 60, self.remove_old).start()
+
     def remove_old(self):
         with self._writeLock:
-            for name in self._registry.keys():
+            for name in list(self._registry.keys()):
                 t = self._registry.get(name)
                 if not t[1]:  # stale entry
                     self._registry.pop(name)
@@ -43,7 +48,8 @@ class Registry:
             else:  # taken
                 self._lock.release_read()
                 result = "taken"
-                self._logger.log(level=logging.WARNING, msg=f"Server {name} already taken with address different from {addr}")
+                self._logger.log(level=logging.WARNING,
+                                 msg=f"Server {name} already taken with address different from {addr}")
         else:  # add
             self._lock.release_read()
             with self._writeLock:
@@ -61,3 +67,9 @@ class Registry:
 
     def get_string(self):
         return self._to_string
+
+
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
