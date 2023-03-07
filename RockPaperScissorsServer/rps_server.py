@@ -102,11 +102,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
                 logger.log(level=logging.INFO, msg='Started new game thread')
 
-                # print(f'\n\n{conns[0]} {conns[1]}\n\n')
-                # conns[0].close()
-                # conns[1].close()
-                # print(f'\n\n{conns[0]} {conns[1]}\n\n')
-
                 conns = []
 
     except KeyboardInterrupt:
@@ -122,71 +117,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print("Terminated")
         logger.log(level=logging.INFO, msg="Rock-Paper-Scissors Server terminated")
 
-# noinspection PyUnreachableCode
-# class RPSServerHandler(socketserver.StreamRequestHandler):
-#
-#     def handle(self):
-#         global conns
-#
-#         conns.append(self.request)
-#
-#         self.request.settimeout(60)
-#
-#         logger.log(level=logging.INFO, msg='Accepted connection from Client')
-#
-#         for c in conns:
-#             print(f'{c}\n\n')
-#
-#         if len(conns) == N_PLAYERS:
-#             game_instance = Thread(target=rps_thread.game_thread, args=(conns, logger,))
-#             game_instance.start()
-#
-#             logger.log(level=logging.INFO, msg='Started new game thread')
-#
-#             print(f'\n\n{conns[0]} {conns[1]}\n\n')
-#             # conns[0].close()
-#             # conns[1].close()
-#             print(f'\n\n{conns[0]} {conns[1]}\n\n')
-#
-#             conns = []
-#
-#
-#
-#
-# try:
-#     with socketserver.TCPServer((localAddress, localPort), RPSServerHandler) as server:
-#         server.allow_reuse_address = True
-#         server.allow_reuse_port = True
-#         server.serve_forever()
-# except KeyboardInterrupt:
-#
-#     server.shutdown()
-#
-#     timer.cancel()
-#
-#     main_thread = threading.current_thread()
-#     for t in threading.enumerate():
-#         if t is main_thread:
-#             continue
-#         t.join()
-#
-#     print("Terminated")
-#     logger.log(level=logging.INFO, msg="Rock-Paper-Scissors Server terminated")
-
-# def main():
-#       while max_retries_not_hit():
-#           try_broker_registration()
-#       listen()
-#       while socket . has_connection():
-#           accept()
-#           if n_players == needed_players:
-#               launch_game_thread()
-
-
-# def game_thread():
-#       while player_action_needed:
-#           send_request()
-#           get_answer()
-#           update_game_state()
-#       else:
-#           terminate()
