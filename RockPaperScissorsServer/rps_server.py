@@ -10,26 +10,16 @@ from threading import Timer, Thread
 
 import rps_thread
 
-# CONSTANTS
-
-serverName = 'Rock-Paper-Scissors'
-
-localAddress = '127.0.0.1'
-localPort = 20100
-
-brokerAddress = '127.0.0.1'
-brokerPort = 20000
-
-N_PLAYERS = 2
-
-MAX_REGISTRATION_TRIES = 3
-
-SECONDS_TIMEOUT = 60
-N_MINUTES = 4
-
 # LOGGING
+filePath = f'logs/{os.getpid()}.log'
 
-file_handler = logging.FileHandler(f'{os.getpid()}.log')
+# create logs folder and file
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+
+open(filePath, 'a').close()
+
+file_handler = logging.FileHandler(filePath)
 stdout_handler = logging.StreamHandler(sys.stdout)
 handlers = [file_handler, stdout_handler]
 
@@ -38,6 +28,33 @@ logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(mes
                     level=logging.DEBUG,
                     handlers=handlers)
 logger = logging.getLogger('RPSServer')
+
+
+# CONSTANTS
+
+serverName = 'Rock-Paper-Scissors'
+
+localAddress = '0.0.0.0'
+
+if len(sys.argv) != 4:
+    logger.log(level=logging.ERROR, msg='Invalid arguments. Usage: [rps_server <localPort> <brokerAddress> <brokerPort>]')
+    exit(-1)
+
+try:
+    localPort = int(sys.argv[1])
+    brokerPort = int(sys.argv[3])
+except ValueError:
+    logger.log(level=logging.ERROR, msg='Invalid port argument')
+    exit(-1)
+
+brokerAddress = sys.argv[2]
+
+N_PLAYERS = 2
+
+MAX_REGISTRATION_TRIES = 3
+
+SECONDS_TIMEOUT = 60
+N_MINUTES = 4
 
 
 # CONNECTING TO BROKER

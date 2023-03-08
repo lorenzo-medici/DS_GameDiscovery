@@ -4,14 +4,25 @@ Scripts that launches the Client when executed
 import logging
 import os
 import socket
+import sys
 
 import validators
 from validators import ValidationFailure
 
 # CONSTANTS
 
-brokerAddress = '127.0.0.1'
-brokerPort = 20000
+if len(sys.argv) != 3:
+    print('Invalid arguments. Usage: [client <brokerAddress> <brokerPort>]')
+    exit(-1)
+
+brokerAddress = sys.argv[1]
+
+try:
+    brokerPort = int(sys.argv[2])
+except ValueError:
+    print('Invalid port argument')
+    exit(-1)
+
 
 # GLOBAL VARIABLES
 
@@ -26,7 +37,11 @@ server_address = None
 
 # LOGGING
 
-logging.basicConfig(filename=f'{os.getpid()}.log',
+# create logs folder
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+
+logging.basicConfig(filename=f'logs/{os.getpid()}.log',
                     format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S%z',
                     level=logging.DEBUG)

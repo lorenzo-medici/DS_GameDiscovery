@@ -8,14 +8,17 @@ import sys
 
 from registry import Registry
 
-# CONSTANTS
-
-localAddress = '0.0.0.0'
-localPort = 20000
-
 # LOGGING
 
-file_handler = logging.FileHandler(f'{os.getpid()}.log')
+filePath = f'logs/{os.getpid()}.log'
+
+# create logs folder and file
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+
+open(filePath, 'a').close()
+
+file_handler = logging.FileHandler(filePath)
 stdout_handler = logging.StreamHandler(sys.stdout)
 handlers = [file_handler, stdout_handler]
 
@@ -26,6 +29,21 @@ logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(mes
 logger = logging.getLogger('Broker')
 
 # INIZIALIZING VARIABLES
+
+# CONSTANTS
+
+localAddress = '0.0.0.0'
+
+if len(sys.argv) != 2:
+    logger.log(level=logging.ERROR, msg='Invalid arguments. Usage: [broker <localPort>]')
+    exit(-1)
+
+try:
+    localPort = int(sys.argv[1])
+except ValueError:
+    logger.log(level=logging.ERROR, msg='Invalid port argument')
+    exit(-1)
+
 
 registry = Registry(logger)
 
