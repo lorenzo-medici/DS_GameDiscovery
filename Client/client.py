@@ -78,21 +78,21 @@ def _valid_addr(address_tuple):
         has to be either a valid ipv4 address or a valid hostname, the second has to be a string
         representing an integer in the range [1024, 49151] for user defined ports.
     :param address_tuple: A tuple containing two strings, an address and a port
-    :return: If the tuple is not valid, False is returned.
+    :return: If the tuple is not valid, False and an empty tuple are returned.
         If the tuple is valid, True is returned as well as a tuple containing the address and the
             port converted to integer
     """
     if len(address_tuple) != 2:
-        return False
+        return False, ()
 
     # Check if the port is integer and in valid range
     try:
         port = int(address_tuple[1])
 
         if port < 1024 or port > 49151:
-            return False
+            return False, ()
     except ValueError:
-        return False
+        return False, ()
 
     try:
         if validators.domain(address_tuple[0]):
@@ -100,7 +100,7 @@ def _valid_addr(address_tuple):
         if validators.ip_address.ipv4(address_tuple[0]):
             return True, (address_tuple[0], port)
     except ValidationFailure:
-        return False
+        return False, ()
 
 
 def _get_input_address():
@@ -226,6 +226,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     while True:
         try:
             prompt = s.recv(1024).decode('utf-8')
+
+            # Server has closed the connection
+            if prompt == '':
+                raise socket.timeout
+
             move = input(prompt)
             s.sendall(move.encode('utf-8'))
         except (socket.timeout, socket.error):

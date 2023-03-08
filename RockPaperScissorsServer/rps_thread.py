@@ -17,6 +17,11 @@ def game_thread(players, logger):
             pass
     except OSError:
         pass
+    finally:
+        players[0].shutdown(socket.SHUT_RDWR)
+        players[0].close()
+        players[1].shutdown(socket.SHUT_RDWR)
+        players[1].close()
 
     logger.log(level=logging.INFO, msg='Thread terminated')
 
