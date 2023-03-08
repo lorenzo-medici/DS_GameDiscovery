@@ -1,3 +1,6 @@
+"""
+Scripts that launches the Rock-Paper-Scissors Server when executed
+"""
 import logging
 import os
 import socket
@@ -22,7 +25,6 @@ N_PLAYERS = 2
 MAX_REGISTRATION_TRIES = 3
 
 SECONDS_TIMEOUT = 60
-
 N_MINUTES = 4
 
 # LOGGING
@@ -43,12 +45,24 @@ logger = logging.getLogger('RPSServer')
 # Perpetual timer with set delay
 # SOURCE: https://stackoverflow.com/a/48741004
 class RepeatTimer(Timer):
+    """
+    When instantiated (and run) this class repeats the function contained in self.function every
+        self.interval seconds.
+    """
+
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
 
 def register_on_broker():
+    """
+    This function attempts to register the server on the broker. Once called sends a message containing
+        the name of the server to the broker, and awaits a response. The response is logged.
+        Possible outcomes are 'okay', 'taken' and 'renewed'
+    If the broker is not available, the connection will be attempted MAX_REGISTRATION_TRIES at intervals
+        given by the socket timeout set at SECONDS_TIMEOUT seconds.
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.settimeout(SECONDS_TIMEOUT)
 
@@ -79,7 +93,12 @@ def register_on_broker():
             logger.log(level=logging.WARN, msg='Could not connect to Broker')
 
 
-# register_on_broker()
+# REPEATTIMER
+# A RepeatTime is activated, periodically creating a new thread that executes register_on_broker
+# This will make sure this server will not be removed from the registry if the period is smaller
+#   that the broker's removal period
+# It will also attempt to register if the broker is not reliable and is not responding or
+#   periodically shutting down
 
 timer = RepeatTimer(N_MINUTES * 60, register_on_broker)
 timer.start()
@@ -93,6 +112,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((localAddress, localPort))
     s.listen()
     try:
+        # The server sequentially accepts all incoming connections and stores the handles in a queue
         while True:
             conn, addr = s.accept()
             logger.log(level=logging.INFO, msg='Accepted connection from Client')
@@ -101,6 +121,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             conns.append(conn)
 
+            # If there are enough players to start a game, then a new thread is started and
+            #   the queue is emptied
             if len(conns) == N_PLAYERS:
                 game_instance = Thread(target=rps_thread.game_thread, args=(conns, logger,))
                 game_instance.start()
@@ -111,6 +133,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     except KeyboardInterrupt:
 
+        # Stopping the timer and waiting for all game threads to finish before terminating
         timer.cancel()
 
         main_thread = threading.current_thread()
@@ -121,4 +144,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         print("Terminated")
         logger.log(level=logging.INFO, msg="Rock-Paper-Scissors Server terminated")
-

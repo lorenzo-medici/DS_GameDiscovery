@@ -1,8 +1,17 @@
+"""
+This module contains the game logic for the Rock-Paper-Scissors server
+"""
 import logging
 import socket
 
 
 def game_thread(players, logger):
+    """
+    This function is called when the new thread is launched. It will run a new game unless
+        the players communicate otherwise
+    :param players: a list containing two player connections
+    :param logger: The logger object to use in these functions
+    """
     try:
         while game_loop(players, logger):
             pass
@@ -13,6 +22,16 @@ def game_thread(players, logger):
 
 
 def game_loop(players, logger):
+    """
+    This function exectutes a single game of Rock Paper Scissors, the first player to three points wins.
+    Each turn player_1 is shown the current score and asked for their move. The same then happens for
+        player_2. Then, the moves are compared and the score is adjusted.
+    When one player wins, both players are asked if they want to play again. If both want to then True
+        is returned
+    :param players: a list containing two player connections
+    :param logger: The logger object to use in these functions
+    :return: A bool representing whether the players want to play again
+    """
     objective = 3
 
     p1 = players[0]
@@ -22,6 +41,8 @@ def game_loop(players, logger):
     p2_wins = 0
 
     while p1_wins < 3 and p2_wins < 3:
+
+        # Ask player_1 for their move
         try:
             p1_move = ask_for_move(p1, [p1_wins, p2_wins])
         except (socket.timeout, socket.error):
@@ -32,6 +53,7 @@ def game_loop(players, logger):
             p2.close()
             return False
 
+        # Ask player_2 for their move
         try:
             p2_move = ask_for_move(p2, [p2_wins, p1_wins])
         except (socket.timeout, socket.error):
@@ -42,6 +64,7 @@ def game_loop(players, logger):
             p2.close()
             return False
 
+        # Compare moves and assign point
         if p1_move == p2_move:
             continue
         elif (p1_move, p2_move) in [('rock', 'scissors'), ('scissors', 'paper'), ('paper', 'rock')]:
@@ -58,6 +81,7 @@ def game_loop(players, logger):
         winner = p2
         loser = p1
 
+    # Ask both players if they want to play again
     try:
         winner_dec = play_again(winner, True)
         loser_dec = play_again(loser, False)
@@ -69,10 +93,16 @@ def game_loop(players, logger):
         p2.close()
         return False
 
-    return (winner_dec == loser_dec) and winner_dec
+    return (winner_dec == loser_dec) and (winner_dec == 'yes')
 
 
 def play_again(player, winner):
+    """
+    This function asks a player whether they want to play another game.
+    :param player: A socket connection
+    :param winner: A bool representing if the player has won or not
+    :return: A string representing their decision
+    """
     while True:
         if winner:
             message = 'You won! Do you want to play again? [yes, no] '
@@ -87,6 +117,14 @@ def play_again(player, winner):
 
 
 def ask_for_move(player, wins):
+    """
+    This function shows the current score to a player and asks for their move for
+        the current turn
+    :param player: A socket connection
+    :param wins: A list of two items containing the wins of the player in the first
+        element, and the wins of their opponent in the second element
+    :return: A string representing their (valid) move
+    """
     while True:
         player.sendall(f'Your score: {wins[0]}\nOpponent\'s score: {wins[1]}\n'
                        f'Input your next move [rock, paper, scissors]: '.encode())
