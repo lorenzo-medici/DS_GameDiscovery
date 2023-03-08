@@ -1,6 +1,7 @@
 import logging
 import os
 import socket
+import sys
 import threading
 from threading import Timer, Thread
 
@@ -26,10 +27,14 @@ N_MINUTES = 4
 
 # LOGGING
 
-logging.basicConfig(filename=f'{os.getpid()}.log',
-                    format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(message)s',
+file_handler = logging.FileHandler(f'{os.getpid()}.log')
+stdout_handler = logging.StreamHandler(sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S%z',
-                    level=logging.DEBUG)
+                    level=logging.DEBUG,
+                    handlers=handlers)
 logger = logging.getLogger('RPSServer')
 
 
