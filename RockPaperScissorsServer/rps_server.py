@@ -32,29 +32,30 @@ logger = logging.getLogger('RPSServer')
 
 # CONSTANTS
 
-serverName = 'Rock-Paper-Scissors'
+N_PLAYERS = 2
+MAX_REGISTRATION_TRIES = 3
+SECONDS_TIMEOUT = 60
+N_MINUTES = 4
 
-localAddress = '0.0.0.0'
 
-if len(sys.argv) != 4:
-    logger.log(level=logging.ERROR, msg='Invalid arguments. Usage: [rps_server <localPort> <brokerAddress> <brokerPort>]')
+# INPUT PARAMETERS
+
+if len(sys.argv) != 6:
+    logger.log(level=logging.ERROR,
+               msg='Invalid arguments. Usage: [rps_server <serverName> <localAddress> <localPort> <brokerAddress> <brokerPort>]')
     exit(-1)
 
 try:
-    localPort = int(sys.argv[1])
-    brokerPort = int(sys.argv[3])
+    localPort = int(sys.argv[3])
+    brokerPort = int(sys.argv[5])
 except ValueError:
     logger.log(level=logging.ERROR, msg='Invalid port argument')
     exit(-1)
 
-brokerAddress = sys.argv[2]
+localAddress = sys.argv[2]
+brokerAddress = sys.argv[4]
 
-N_PLAYERS = 2
-
-MAX_REGISTRATION_TRIES = 3
-
-SECONDS_TIMEOUT = 60
-N_MINUTES = 4
+serverName = sys.argv[1]
 
 
 # CONNECTING TO BROKER
@@ -82,12 +83,12 @@ def register_on_broker():
     """
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.settimeout(SECONDS_TIMEOUT)
-
-        sock.bind((localAddress, localPort))
-
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         success = False
+
+        # attempts a set number of times
         for i in range(0, MAX_REGISTRATION_TRIES):
-            sock.sendto(bytes(serverName + "\n", "utf-8"), (brokerAddress, brokerPort))
+            sock.sendto(bytes(f'{serverName}|{localAddress}|{localPort}', "utf-8"), (brokerAddress, brokerPort))
 
             try:
                 received = str(sock.recv(1024), "utf-8")
@@ -120,13 +121,13 @@ def register_on_broker():
 timer = RepeatTimer(N_MINUTES * 60, register_on_broker)
 timer.start()
 
+
 # HANDLING CLIENT CONNECTIONS
 
 conns = []
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((localAddress, localPort))
+    s.bind(('0.0.0.0', localPort))
     s.listen()
     try:
         # The server sequentially accepts all incoming connections and stores the handles in a queue
@@ -134,7 +135,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             conn, addr = s.accept()
             logger.log(level=logging.INFO, msg='Accepted connection from Client')
 
-            conn.settimeout(15)
+            conn.settimeout(30)
 
             conns.append(conn)
 

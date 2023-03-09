@@ -9,7 +9,8 @@ import sys
 import validators
 from validators import ValidationFailure
 
-# CONSTANTS
+
+# INPUT PARAMETERS
 
 if len(sys.argv) != 3:
     print('Invalid arguments. Usage: [client <brokerAddress> <brokerPort>]')
@@ -34,6 +35,7 @@ user_retries = True
 connected_to_server = False
 
 server_address = None
+
 
 # LOGGING
 
@@ -63,21 +65,22 @@ def _query_broker():
             and the bool is True.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        sock.settimeout(2)
+        sock.settimeout(30)
+        # sends agreed "query" string to broker
         sock.sendto(bytes("query" + "\n", "utf-8"), (brokerAddress, brokerPort))
 
         try:
             received = str(sock.recv(1024), "utf-8")
+
+            # if "empty" is received no servers are registered
+            if received == "empty":
+                return [], True
         except (socket.timeout, socket.error):
-            # Broker not available
+            # Broker is not available
             return [], False
         except KeyboardInterrupt:
             logger.log(level=logging.INFO, msg='User terminated the process')
             exit(-1)
-
-    # If response is empty there aren't servers registered
-    if len(received) == 0:
-        return [], True
 
     # Parsing the response
     s_strings = received.split('$')
@@ -109,6 +112,7 @@ def _valid_addr(address_tuple):
     except ValueError:
         return False, ()
 
+    # checks if the address is either a valid domain or an ipv4 address
     try:
         if validators.domain(address_tuple[0]):
             return True, (address_tuple[0], port)
@@ -167,6 +171,8 @@ while not valid_address:
         continue
 
     if query_broker:
+
+        # attempts wuery
         servers, valid_response = _query_broker()
 
         if not valid_response:
@@ -179,6 +185,7 @@ while not valid_address:
             logger.log(level=logging.INFO, msg='No servers on Broker')
             continue
 
+        # lists servers to the user and asks for their pick
         while not valid_address:
             print("Servers currently available:")
             for i, s in enumerate(servers):
@@ -202,10 +209,12 @@ while not valid_address:
                 print("Please type a number from the list")
                 continue
 
+    # user inputs server address
     if manual_address:
         server_address = _get_input_address()
         print("Will attempt connection to chosen server...")
         valid_address = True
+
 
 # GAME LOOP
 # At this point the server_address variable contains the pair (addr, port)

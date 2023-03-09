@@ -1,0 +1,20 @@
+Create docker image with
+`docker buildx build . -f <name> -t <name>:latest`
+
+When delivering, create all images with `docker save` (???) and put them in `images/` subfolder
+Then write how to launch each image:
+ 1. import image
+ 2. export necessary variables
+ 3. docker run command
+
+Run docker images with
+
+export BROKER_PORT=20000
+export SERVER_PORT=20100
+export CLIENT_PORT=20200
+export BROKER_ADDRESS='192.168.0.100'
+export SERVER_NAME='Rock-Paper-Scissors'
+
+docker run --pid=host -v .:/Client/logs -it client ${BROKER_ADDRESS} ${BROKER_PORT}
+docker run --pid=host -v .:/Broker/logs -p ${BROKER_PORT}:20000/udp broker
+docker run --pid=host -v .:/RPSServer/logs -p ${SERVER_PORT}:20100/tcp rps_server ${SERVER_NAME} ${SERVER_ADDRESS} ${SERVER_PORT} ${BROKER_ADDRESS} ${BROKER_PORT}

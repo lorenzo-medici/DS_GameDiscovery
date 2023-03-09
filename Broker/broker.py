@@ -28,9 +28,8 @@ logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(mes
                     handlers=handlers)
 logger = logging.getLogger('Broker')
 
-# INIZIALIZING VARIABLES
 
-# CONSTANTS
+# INPUT PARAMETERS
 
 localAddress = '0.0.0.0'
 
@@ -45,6 +44,8 @@ except ValueError:
     exit(-1)
 
 
+# INITIALIZING REGISTRY
+
 registry = Registry(logger)
 
 
@@ -58,10 +59,8 @@ class BrokerRequestHandler(socketserver.DatagramRequestHandler):
         """
         method that handles a single request. Uses the attributes self.request and self.client_address.
         """
-
         # Read the request content and the address it came from
         msg = str(self.request[0].strip(), "utf-8")
-        addr_string = f'{self.client_address[0]}|{self.client_address[1]}'
 
         # if it is a query it can be answered directly
         if msg == "query":
@@ -69,7 +68,11 @@ class BrokerRequestHandler(socketserver.DatagramRequestHandler):
             logger.log(level=logging.INFO, msg="Answered to query")
         # otherwise the msg content and the address are passed to the registry
         else:
-            result = registry.add_server(msg, addr_string)
+            name, addr_string = msg.split('|', maxsplit=1)
+            result = registry.add_server(name, addr_string)
+
+        if result == "":
+            result = "empty"
 
         # the result (list of servers, or state of registration) is returned to the client
         self.wfile.write(bytes(result, "utf-8"))

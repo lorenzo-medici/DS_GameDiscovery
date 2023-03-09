@@ -3,4 +3,9 @@
  - RWLock is still applied to internal dictionary
 
 
-###
+### SERVER-BROKER
+
+ - since the broker is containerized it cannot know the "global" address of the server. For this reason the server
+    will send a string formatted as '<serverName>|<serverAddress>|<serverPort>'. Note that the second part is what
+    the broker saves as address string, so it will need to split only on the first '|' character to get the server
+    name and address string to store
