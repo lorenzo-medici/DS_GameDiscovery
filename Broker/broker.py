@@ -80,7 +80,7 @@ class BrokerRequestHandler(socketserver.DatagramRequestHandler):
 
 # Creates and UDPServer bound to (localAddress, localPort) that answers using the class defined above
 try:
-    with socketserver.UDPServer((localAddress, localPort), BrokerRequestHandler) as server:
+    with socketserver.ThreadingUDPServer((localAddress, localPort), BrokerRequestHandler) as server:
         server.serve_forever()
 except KeyboardInterrupt:
     # Teardown when terminated by user
