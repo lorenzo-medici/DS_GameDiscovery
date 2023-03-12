@@ -28,7 +28,7 @@ def game_thread(players, logger):
 
 def game_loop(players, logger):
     """
-    This function exectutes a single game of Rock Paper Scissors, the first player to three points wins.
+    This function executes a single game of Rock-Paper-Scissors, the first player to three points wins.
     Each turn player_1 is shown the current score and asked for their move. The same then happens for
         player_2. Then, the moves are compared and the score is adjusted.
     When one player wins, both players are asked if they want to play again. If both want to then True
@@ -130,11 +130,21 @@ def ask_for_move(player, wins):
         element, and the wins of their opponent in the second element
     :return: A string representing their (valid) move
     """
+
+    error = False
+
     while True:
-        player.sendall(f'Your score: {wins[0]}\nOpponent\'s score: {wins[1]}\n'
+        if error:
+            error_string = 'Invalid move!\n'
+        else:
+            error_string = ''
+
+        player.sendall(f'{error_string}Your score: {wins[0]}\nOpponent\'s score: {wins[1]}\n'
                        f'Input your next move [rock, paper, scissors]: '.encode())
 
         move = player.recv(1024).decode().strip()
 
         if move in ['rock', 'paper', 'scissors']:
             return move
+
+        error = True

@@ -9,7 +9,6 @@ import sys
 import validators
 from validators import ValidationFailure
 
-
 # INPUT PARAMETERS
 
 if len(sys.argv) != 3:
@@ -24,7 +23,6 @@ except ValueError:
     print('Invalid port argument')
     exit(-1)
 
-
 # GLOBAL VARIABLES
 
 manual_address = False
@@ -35,7 +33,6 @@ user_retries = True
 connected_to_server = False
 
 server_address = None
-
 
 # LOGGING
 
@@ -215,7 +212,6 @@ while not valid_address:
         print("Will attempt connection to chosen server...")
         valid_address = True
 
-
 # GAME LOOP
 # At this point the server_address variable contains the pair (addr, port)
 logger.log(level=logging.INFO, msg=f'Chosen server at address {server_address[0]}:{server_address[1]}')
@@ -255,8 +251,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if prompt == '':
                 raise socket.timeout
 
-            move = input(prompt)
-            s.sendall(move.encode('utf-8'))
+            while True:
+                move = input(prompt)
+                if len(move) != 0:
+                    s.sendall(move.encode('utf-8'))
+                    break
+                else:
+                    print("Invalid move")
         except (socket.timeout, socket.error):
             print("Server stopped responding, terminating...")
             logger.log(level=logging.INFO, msg='Connectino with the Server was closed')

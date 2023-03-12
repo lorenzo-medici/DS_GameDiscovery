@@ -28,7 +28,6 @@ logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(mes
                     handlers=handlers)
 logger = logging.getLogger('Broker')
 
-
 # INPUT PARAMETERS
 
 localAddress = '0.0.0.0'
@@ -42,7 +41,6 @@ try:
 except ValueError:
     logger.log(level=logging.ERROR, msg='Invalid port argument')
     exit(-1)
-
 
 # INITIALIZING REGISTRY
 
