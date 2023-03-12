@@ -1,5 +1,5 @@
 """
-Scripts that launches the Rock-Paper-Scissors Server when executed
+Scripts that launches the Tic-Tac-Toe Server when executed
 """
 import logging
 import os
@@ -8,7 +8,7 @@ import sys
 import threading
 from threading import Timer, Thread
 
-import rps_thread
+import ttt_thread
 
 # LOGGING
 filePath = f'logs/{os.getpid()}.log'
@@ -27,7 +27,7 @@ logging.basicConfig(format='%(asctime)s:%(process)d:%(name)s:%(levelname)s:%(mes
                     datefmt='%Y-%m-%dT%H:%M:%S%z',
                     level=logging.DEBUG,
                     handlers=handlers)
-logger = logging.getLogger('RPSServer')
+logger = logging.getLogger('Tic-Tac-Toe')
 
 # CONSTANTS
 
@@ -41,7 +41,7 @@ N_MINUTES = 4
 
 if len(sys.argv) != 6:
     logger.log(level=logging.ERROR,
-               msg='Invalid arguments. Usage: [rps_server <serverName> <localAddress> <localPort> <brokerAddress> <brokerPort>]')
+               msg='Invalid arguments. Usage: [ttt_server <serverName> <localAddress> <localPort> <brokerAddress> <brokerPort>]')
     exit(-1)
 
 try:
@@ -141,7 +141,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # If there are enough players to start a game, then a new thread is started and
             #   the queue is emptied
             if len(conns) == N_PLAYERS:
-                game_instance = Thread(target=rps_thread.game_thread, args=(conns, logger,))
+                game_instance = Thread(target=ttt_thread.game_thread, args=(conns, logger,))
                 game_instance.start()
 
                 logger.log(level=logging.INFO, msg='Started new game thread')
@@ -160,4 +160,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             t.join()
 
         print("Terminated")
-        logger.log(level=logging.INFO, msg="Rock-Paper-Scissors Server terminated")
+        logger.log(level=logging.INFO, msg="Tic-Tac-Toe Server terminated")
