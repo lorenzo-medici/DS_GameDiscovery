@@ -39,7 +39,7 @@ class Registry:
 
         self._logger = logger
 
-        self._timer = RepeatTimer(N_MINUTES * 60, self.remove_old)
+        self._timer = RepeatTimer(90, self.remove_old)
         self._timer.start()
 
     def stop_timer(self):

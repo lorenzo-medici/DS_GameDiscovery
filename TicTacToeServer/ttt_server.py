@@ -34,7 +34,7 @@ logger = logging.getLogger('Tic-Tac-Toe')
 N_PLAYERS = 2
 MAX_REGISTRATION_TRIES = 3
 SECONDS_TIMEOUT = 60
-N_MINUTES = 4
+N_MINUTES = 1
 
 
 # INPUT PARAMETERS
